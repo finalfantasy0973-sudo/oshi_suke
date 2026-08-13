@@ -2,6 +2,44 @@
     <!-- 外部 JSON (works.json / events.json) を取得するために必要 -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- ローカル通知 (締切アラート等) 関連 -->
+    <!-- Android 13 (API 33) 以降は実行時に許可ダイアログが必要 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- 端末再起動後にスケジュールを復元するため -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <!-- Doze モードでも振動するため -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- アラーム / Doze 時にも起動するため -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <!--
+      Exact Alarm 権限まわり (重要: 推しスケは exact alarm に依存しない設計)
+      ─────────────────────────────────────────────────────────────────────
+      推しスケの **通常運用** は inexactAllowWhileIdle を使い、
+      朝 9 時前後の遅延 (Doze で数分〜十数分) を許容する設計。
+      ここで宣言している権限は「デバッグパネルから exact 1分後通知を確認したい」
+      ためだけのオプション。本番動作には不要。
+
+      Android バージョン別の挙動:
+        ・Android 11 (API 30) 以下: 何も設定しなくても exact alarm 使える
+        ・Android 12 (API 31) ~ 13: SCHEDULE_EXACT_ALARM はユーザー許可必須。
+          「設定 → 特別なアプリアクセス → アラームとリマインダー」に表示される
+        ・Android 14 (API 34) 以降:
+          - USE_EXACT_ALARM: 「アラーム / カレンダー / リマインダー」用途と
+            判断されれば **インストール時に自動付与される**。リストに出ない。
+          - SCHEDULE_EXACT_ALARM: ユーザー許可必須だが、USE_EXACT_ALARM が
+            自動付与された場合はそちらが優先されてリストに出ないケースがある。
+
+      Nothing Phone 2 / Android 14 で「アラームとリマインダー」に
+      推しスケが表示されない場合、USE_EXACT_ALARM が自動付与済みの可能性が高い。
+      その場合 _plugin.canScheduleExactNotifications() は true を返す。
+
+      なお Play Store 提出時 SCHEDULE_EXACT_ALARM は使用根拠の justification が必要。
+      不要にしたい場合は manifest で tools:node="remove" すること。
+    -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+
     <application
         android:label="oshi_suke"
         android:name="${applicationName}"

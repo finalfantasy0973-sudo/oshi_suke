@@ -125,7 +125,10 @@ final eventStatusProvider =
   return ref.watch(eventStatusServiceProvider).statusOf(event);
 });
 
-/// 通知設定（MVPはローカル状態のみ）
+/// 通知設定 (ローカル状態 + 端末への schedule 反映)。
+///
+/// 値が変わるたびに [notificationSchedulerProvider] が
+/// 再スケジューリングするため、ここでは状態保持に専念する。
 class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
   NotificationSettingsNotifier() : super(const NotificationSettings());
 
@@ -135,10 +138,11 @@ class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
       state = state.copyWith(notifyBeforeReservationEnd: v);
   void setNotifyBeforeEventStart(bool v) =>
       state = state.copyWith(notifyBeforeEventStart: v);
-  void setNotifyOnEventDay(bool v) =>
-      state = state.copyWith(notifyOnEventDay: v);
-  void setDeadlineLeadTime(DeadlineLeadTime v) =>
-      state = state.copyWith(deadlineLeadTime: v);
+  void setNotifyOnDay(bool v) => state = state.copyWith(notifyOnDay: v);
+  void setNotifyOneDayBefore(bool v) =>
+      state = state.copyWith(notifyOneDayBefore: v);
+  void setNotifyThreeDaysBefore(bool v) =>
+      state = state.copyWith(notifyThreeDaysBefore: v);
 }
 
 final notificationSettingsProvider = StateNotifierProvider<

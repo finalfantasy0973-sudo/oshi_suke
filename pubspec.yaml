@@ -50,6 +50,16 @@ dependencies:
   # 外部 JSON 取得 (works.json / events.json をサーバから取得)
   http: ^1.2.0
 
+  # 日本語フォント (Noto Sans JP) を読み込みやすい形で適用
+  google_fonts: ^6.2.1
+
+  # ローカル通知 (締切アラート等)
+  flutter_local_notifications: ^17.2.4
+  timezone: ^0.9.4
+
+  # Android 13+ の通知権限ランタイムリクエスト
+  permission_handler: ^11.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

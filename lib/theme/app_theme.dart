@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// アプリ全体のブランドカラーとグラデーション。
 class AppColors {
@@ -78,48 +79,62 @@ ThemeData buildAppTheme() {
     surface: AppColors.surface,
   );
 
-  const baseFamily = 'NotoSans';
+  // ── Noto Sans JP を全画面に適用 ──────────────────────────────────────────
+  // 端末標準フォントだとレンダラ依存で「ドット風」に見えることがあるため、
+  // google_fonts 経由で明示的に Noto Sans JP を読み込ませて統一する。
+  // GoogleFonts.notoSansJp() は同期で TextStyle を返し、フォント本体は
+  // 初回のみ非同期ダウンロード→端末キャッシュされる。
+  final notoFamily = GoogleFonts.notoSansJp().fontFamily;
+
+  TextStyle noto({
+    double? fontSize,
+    FontWeight? fontWeight,
+    double? height,
+    double? letterSpacing,
+    Color? color,
+  }) =>
+      GoogleFonts.notoSansJp(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        height: height,
+        letterSpacing: letterSpacing,
+        color: color,
+      );
+
+  final notoTextTheme = TextTheme(
+    titleLarge: noto(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        height: 1.25,
+        letterSpacing: -0.2),
+    titleMedium: noto(fontSize: 16, fontWeight: FontWeight.w800, height: 1.3),
+    titleSmall: noto(fontSize: 14, fontWeight: FontWeight.w700, height: 1.3),
+    bodyLarge: noto(fontSize: 14, height: 1.45),
+    bodyMedium: noto(fontSize: 13, height: 1.45),
+    bodySmall: noto(fontSize: 12, height: 1.4),
+    labelLarge: noto(fontSize: 13, fontWeight: FontWeight.w700),
+    labelMedium: noto(fontSize: 12, fontWeight: FontWeight.w700),
+    labelSmall: noto(fontSize: 11, fontWeight: FontWeight.w700),
+  );
 
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
     scaffoldBackgroundColor: AppColors.background,
-    fontFamily: null, // システムデフォルト（日本語フォント）に任せる
-    textTheme: const TextTheme(
-      titleLarge: TextStyle(
-        fontFamily: baseFamily,
-        fontSize: 22,
-        fontWeight: FontWeight.w800,
-        height: 1.25,
-        letterSpacing: -0.2,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w800,
-        height: 1.3,
-      ),
-      titleSmall: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w700,
-        height: 1.3,
-      ),
-      bodyLarge: TextStyle(fontSize: 14, height: 1.45),
-      bodyMedium: TextStyle(fontSize: 13, height: 1.45),
-      bodySmall: TextStyle(fontSize: 12, height: 1.4),
-      labelLarge: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-      labelMedium: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-      labelSmall: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
-    ),
-    appBarTheme: const AppBarTheme(
+    // インライン TextStyle (fontFamily 未指定) もこのフォントで描画される
+    fontFamily: notoFamily,
+    fontFamilyFallback: const ['Roboto', 'sans-serif'],
+    textTheme: notoTextTheme,
+    appBarTheme: AppBarTheme(
       backgroundColor: AppColors.background,
-      foregroundColor: Color(0xFF2A1F33),
+      foregroundColor: const Color(0xFF2A1F33),
       centerTitle: false,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: TextStyle(
+      titleTextStyle: noto(
         fontSize: 18,
         fontWeight: FontWeight.w800,
-        color: Color(0xFF2A1F33),
+        color: const Color(0xFF2A1F33),
       ),
     ),
     cardTheme: CardThemeData(
@@ -136,10 +151,7 @@ ThemeData buildAppTheme() {
       backgroundColor: AppColors.surfaceMuted,
       selectedColor: AppColors.primary.withValues(alpha: 0.12),
       side: BorderSide.none,
-      labelStyle: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-      ),
+      labelStyle: noto(fontSize: 12, fontWeight: FontWeight.w600),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(999),
       ),
@@ -167,7 +179,7 @@ ThemeData buildAppTheme() {
         borderRadius: BorderRadius.circular(16),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
       ),
-      hintStyle: const TextStyle(color: Color(0xFF9C8FA3), fontSize: 13),
+      hintStyle: noto(color: const Color(0xFF9C8FA3), fontSize: 13),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -177,10 +189,7 @@ ThemeData buildAppTheme() {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        textStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-        ),
+        textStyle: noto(fontSize: 15, fontWeight: FontWeight.w700),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -191,10 +200,7 @@ ThemeData buildAppTheme() {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        textStyle: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w700,
-        ),
+        textStyle: noto(fontSize: 15, fontWeight: FontWeight.w700),
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
@@ -205,7 +211,7 @@ ThemeData buildAppTheme() {
       elevation: 8,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
-        return TextStyle(
+        return noto(
           fontSize: 11,
           fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           color: selected ? AppColors.primary : const Color(0xFF6B5C72),

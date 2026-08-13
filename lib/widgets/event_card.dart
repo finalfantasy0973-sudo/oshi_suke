@@ -30,6 +30,15 @@ class EventCard extends ConsumerWidget {
     final reservationText = _reservationText(event, fmt);
     final daysHint = _daysHint(event, status);
 
+    // 旧実装は `IntrinsicHeight + Row(stretch) + Wrap` の組み合わせで
+    // Wrap が 2 行になるとき intrinsic 高さが過小評価され、Column が
+    // 親の高さ制約を超えて RenderFlex overflow を起こしていた。
+    //
+    // 解消: Stack を使い、コンテンツ (Padding+Column) の自然高さで Stack 高さを
+    // 決定 → カバーは Positioned(top:0, bottom:0, width:110) で縦いっぱいに
+    // 自動ストレッチ。intrinsic ベースの計算が不要になり overflow が起きない。
+    const coverWidth = 110.0;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Material(
@@ -44,98 +53,109 @@ class EventCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.outline, width: 0.6),
             ),
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _CoverArea(
+            child: Stack(
+              children: [
+                // ── 右側コンテンツ (左に coverWidth 分の余白を確保) ──
+                // この Column の自然高さが Stack 全体の高さを決める。
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: coverWidth),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                event.workTitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11.5,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                            _BookmarkButton(event: event),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          event.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14.5,
+                            height: 1.3,
+                            color: Color(0xFF231A2A),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            StatusBadge(status: status, dense: true),
+                            CategoryChip(
+                                category: event.category, dense: true),
+                            if (event.hasOnlineShop)
+                              const _MetaChip(
+                                icon: Icons.shopping_cart_outlined,
+                                label: '通販',
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (rangeText != null)
+                          _DateRow(
+                            icon: Icons.event_outlined,
+                            text: rangeText,
+                          ),
+                        if (reservationText != null)
+                          _DateRow(
+                            icon: Icons.alarm_outlined,
+                            text: reservationText,
+                            highlight:
+                                status == EventStatus.deadlineSoon,
+                          ),
+                        if (event.location != null)
+                          _DateRow(
+                            icon: Icons.place_outlined,
+                            text: event.location!,
+                            muted: true,
+                          ),
+                        if (daysHint != null) ...[
+                          const SizedBox(height: 6),
+                          _DaysHintPill(
+                            text: daysHint.text,
+                            color: daysHint.color,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                // ── 左カバー (top:0/bottom:0/width:coverWidth) ──
+                // Stack 高さに合わせて自動で縦ストレッチされるため、
+                // 旧 IntrinsicHeight 相当の見た目を保ちつつ overflow フリー。
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: coverWidth,
+                  child: _CoverArea(
                     category: event.category,
                     status: status,
                     eventId: event.id,
                   ),
-                  Expanded(
-                    child: Padding(
-                      padding:
-                          const EdgeInsets.fromLTRB(12, 12, 8, 12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  event.workTitle,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 11.5,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ),
-                              _BookmarkButton(event: event),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            event.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14.5,
-                              height: 1.3,
-                              color: Color(0xFF231A2A),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            children: [
-                              StatusBadge(status: status, dense: true),
-                              CategoryChip(
-                                  category: event.category, dense: true),
-                              if (event.hasOnlineShop)
-                                const _MetaChip(
-                                  icon: Icons.shopping_cart_outlined,
-                                  label: '通販',
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          if (rangeText != null)
-                            _DateRow(
-                              icon: Icons.event_outlined,
-                              text: rangeText,
-                            ),
-                          if (reservationText != null)
-                            _DateRow(
-                              icon: Icons.alarm_outlined,
-                              text: reservationText,
-                              highlight: status == EventStatus.deadlineSoon,
-                            ),
-                          if (event.location != null)
-                            _DateRow(
-                              icon: Icons.place_outlined,
-                              text: event.location!,
-                              muted: true,
-                            ),
-                          if (daysHint != null) ...[
-                            const SizedBox(height: 6),
-                            _DaysHintPill(
-                              text: daysHint.text,
-                              color: daysHint.color,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -235,58 +255,58 @@ class _CoverArea extends StatelessWidget {
     final palette = AppGradients.categoryPalette[
         eventId.hashCode.abs() % AppGradients.categoryPalette.length];
 
-    return SizedBox(
-      width: 110,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: palette,
-                ),
-              ),
-              child: Center(
-                child: Icon(
-                  category.icon,
-                  size: 44,
-                  color: AppColors.primaryDark.withValues(alpha: 0.55),
-                ),
-              ),
+    // 親 (Positioned with top:0/bottom:0/width:110) が幅と縦ストレッチを
+    // 与えるので、ここでは追加の SizedBox 制約は不要。
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: palette,
             ),
           ),
-          // 左下にステータスのカラードット
-          Positioned(
-            left: 8,
-            bottom: 8,
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: status.color,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(status.icon, size: 11, color: Colors.white),
-                  const SizedBox(width: 3),
-                  Text(
-                    status.label,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
+          child: Center(
+            child: Icon(
+              category.icon,
+              size: 44,
+              color: AppColors.primaryDark.withValues(alpha: 0.55),
+            ),
+          ),
+        ),
+        // 左下にステータスのカラーピル (内容に合わせて自然サイズ)
+        Positioned(
+          left: 8,
+          bottom: 8,
+          child: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: status.color,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(status.icon, size: 11, color: Colors.white),
+                const SizedBox(width: 3),
+                Text(
+                  status.label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
