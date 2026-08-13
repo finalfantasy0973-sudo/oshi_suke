@@ -32,15 +32,15 @@ class RemoteDataConfig {
   // null のままだと Remote をスキップして asset → mock のみで動作する。
   // ---------------------------------------------------------------------------
   //
-  // 現在: GitHub Pages (ranranru482/oshi_suke リポジトリの public_data フォルダ) を使用。
-  //   - works.json  : https://ranranru482.github.io/oshi_suke/public_data/works.json
-  //   - events.json : https://ranranru482.github.io/oshi_suke/public_data/events.json
+  // 現在: GitHub Pages (finalfantasy0973-sudo/oshi_suke リポジトリの public_data フォルダ) を使用。
+  //   - works.json  : https://finalfantasy0973-sudo.github.io/oshi_suke/public_data/works.json
+  //   - events.json : https://finalfantasy0973-sudo.github.io/oshi_suke/public_data/events.json
   //
   // Remote を無効化したい場合はこの値を `null` に戻すだけで OK
   // (型は将来の null 切替を残すため `String?` のまま維持する)。
   // ignore: unnecessary_nullable_for_final_variable_declarations
   static const String? baseUrl =
-      'https://ranranru482.github.io/oshi_suke/public_data';
+      'https://finalfantasy0973-sudo.github.io/oshi_suke/public_data';
 
   /// baseUrl 配下の works.json への相対パス。
   static const String worksPath = '/works.json';
