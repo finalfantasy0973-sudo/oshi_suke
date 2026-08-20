@@ -71,6 +71,33 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!--
+          flutter_local_notifications (17.2.4) の受信レシーバー登録
+          ─────────────────────────────────────────────────────────────────────
+          このプラグインは自身の AndroidManifest に receiver を宣言しないため、
+          **アプリ側で手動登録が必須**。未登録だと zonedSchedule() は
+          「アラーム登録は成功するが、発火時に受け皿が無く握り潰される」
+          状態になり、予約通知が一切表示されない (即時通知 show() は届く)。
+
+          宣言内容はプラグイン公式サンプル
+          (example/android/app/src/main/AndroidManifest.xml) と同一。
+
+            ・ActionBroadcastReceiver        : 通知のアクションボタン押下を受ける
+            ・ScheduledNotificationReceiver  : 予約通知の発火を受けて通知を表示する
+            ・ScheduledNotificationBootReceiver : 端末再起動後にスケジュールを復元する
+              (上で宣言している RECEIVE_BOOT_COMPLETED 権限の受け皿)
+        -->
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
+        <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
